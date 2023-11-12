@@ -11,16 +11,6 @@ datasource db {
   relationMode = "prisma"
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
 enum Gender {
   Male
   Female
@@ -31,55 +21,87 @@ enum Role {
   admin
 }
 
-model User {
-  id          String    @id @default(cuid())
-  name        String?
-  email       String?   @unique
-  password    String
-  role        Role      @default(user)
-  dateOfBirth DateTime?
-  gender      Gender?
-  department  String?
-  games       Game[]
-  sessions    Session[]
-}
-
-enum GameType {
+enum QuestionType {
   mcq
   open_ended
 }
 
-model Game {
-  id          String     @id @default(cuid())
-  userId      String
-  questions   Question[]
-  timeStarted DateTime
-  topic       String
-  timeEnded   DateTime?
-  gameType    GameType
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
-model topic_count {
-  id    String @id @default(cuid())
-  topic String @unique
-  count Int
+model User {
+  id          String       @id @default(cuid())
+  name        String?
+  email       String?      @unique
+  password    String
+  role        Role         @default(user)
+  dateOfBirth DateTime?
+  gender      Gender?
+  department  String?
+  games       UserGame[]
+  sessions    Session[]
+  UserAnswer  UserAnswer[]
+}
+
+model Game {
+  id        String     @id @default(cuid())
+  name      String
+  questions Question[]
+  users     UserGame[] // Menggunakan UserGame untuk menangani many-to-many relationship
+  token     String
+  duration  Int        @default(0)
+}
+
+model UserGame {
+  userId         String
+  gameId         String
+  timeStarted    DateTime
+  timeEnded      DateTime?
+  isGameOver     Boolean?
+  questionNumber Int?
+  score          Int?
+
+  user User @relation(fields: [userId], references: [id])
+  game Game @relation(fields: [gameId], references: [id])
+
+  @@id([userId, gameId])
+  @@index([userId])
+  @@index([gameId])
+  @@index([userId, gameId])
 }
 
 model Question {
-  id                String   @id @default(cuid())
-  question          String
-  answer            String
-  gameId            String
-  options           Json? // for mcq questions
-  percentageCorrect Float? // for open_ended questions
-  isCorrect         Boolean? // for mcq questions
-  questionType      GameType
-  userAnswer        String?
+  id           String       @id @default(cuid())
+  question     String
+  answer       String
+  gameId       String
+  options      Json? // for mcq questions
+  questionType QuestionType
+  userAnswers  UserAnswer[]
 
   game Game @relation(fields: [gameId], references: [id])
 
   @@index([gameId])
+}
+
+model UserAnswer {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  answer     String
+  isCorrect  Boolean?
+
+  user     User     @relation(fields: [userId], references: [id])
+  question Question @relation(fields: [questionId], references: [id])
+
+  @@index([userId])
+  @@index([questionId])
+  @@index([userId, questionId])
 }

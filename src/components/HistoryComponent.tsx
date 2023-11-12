@@ -9,18 +9,18 @@ type Props = {
 };
 
 const HistoryComponent = async ({ limit, userId }: Props) => {
-  const games = await prisma.game.findMany({
-    take: limit,
-    where: {
-      userId,
-    },
-    orderBy: {
-      timeStarted: "desc",
-    },
-  });
+  // const games = await prisma.game.findMany({
+  //   take: limit,
+  //   where: {
+  //     userId,
+  //   },
+  //   orderBy: {
+  //     timeStarted: "desc",
+  //   },
+  // });
   return (
     <div className="space-y-8">
-      {games.map((game) => {
+      {/* {games.map((game) => {
         return (
           <div className="flex items-center justify-between" key={game.id}>
             <div className="flex items-center">
@@ -47,7 +47,7 @@ const HistoryComponent = async ({ limit, userId }: Props) => {
             </div>
           </div>
         );
-      })}
+      })} */}
     </div>
   );
 };

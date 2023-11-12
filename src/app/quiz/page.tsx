@@ -1,27 +1,21 @@
 import React from "react";
 
 import { redirect } from "next/navigation";
-import QuizCreation from "@/components/forms/QuizCreation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
+import QuizLobby from "@/components/forms/QuizLobby";
 
 export const metadata = {
   title: "Quiz | Kecermatan ABZ",
   description: "Quiz yourself on anything!",
 };
 
-interface Props {
-  searchParams: {
-    topic?: string;
-  };
-}
-
-const Quiz = async ({ searchParams }: Props) => {
+const Quiz = async () => {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     redirect("/");
   }
-  return <QuizCreation topic={searchParams.topic ?? ""} />;
+  return <QuizLobby />;
 };
 
 export default Quiz;

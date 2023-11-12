@@ -21,3 +21,10 @@ export function formatTimeDelta(seconds: number) {
   }
   return parts.join(" ");
 }
+
+export function generateUniqueToken() {
+  const timestamp = new Date().getTime();
+  const randomString = Math.random().toString(36).substr(2, 10);
+  const token = `${timestamp}_${randomString}`;
+  return token;
+}

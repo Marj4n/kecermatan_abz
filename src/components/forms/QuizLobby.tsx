@@ -15,12 +15,10 @@ import {
 } from "@/components/ui/form";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { BookOpen, CopyCheck } from "lucide-react";
-import { Separator } from "../ui/separator";
+import { BookOpen } from "lucide-react";
 import axios, { AxiosError } from "axios";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "../ui/use-toast";
-import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -29,21 +27,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import LoadingQuestions from "../LoadingQuestions";
-
-type Props = {
-  topic: string;
-};
+import { redirect, useRouter } from "next/navigation";
 
 type Input = z.infer<typeof quizCreationSchema>;
 
-const QuizCreation = ({ topic: topicParam }: Props) => {
+const QuizLobby = () => {
   const router = useRouter();
   const [showLoader, setShowLoader] = React.useState(false);
   const [finishedLoading, setFinishedLoading] = React.useState(false);
   const { toast } = useToast();
   const { mutate: getQuestions, isLoading } = useMutation({
-    mutationFn: async ({ amount, topic, type }: Input) => {
-      const response = await axios.post("/api/game", { amount, topic, type });
+    mutationFn: async ({ token }: Input) => {
+      const response = await axios.get(`/api/question?gameId=${token}`);
       return response.data;
     },
   });
@@ -51,9 +46,7 @@ const QuizCreation = ({ topic: topicParam }: Props) => {
   const form = useForm<Input>({
     resolver: zodResolver(quizCreationSchema),
     defaultValues: {
-      topic: topicParam,
-      type: "mcq",
-      amount: 3,
+      token: "",
     },
   });
 
@@ -74,13 +67,8 @@ const QuizCreation = ({ topic: topicParam }: Props) => {
       },
       onSuccess: ({ gameId }: { gameId: string }) => {
         setFinishedLoading(true);
-        setTimeout(() => {
-          if (form.getValues("type") === "mcq") {
-            router.push(`/play/mcq/${gameId}`);
-          } else if (form.getValues("type") === "open_ended") {
-            router.push(`/play/open-ended/${gameId}`);
-          }
-        }, 2000);
+        console.log(gameId);
+        router.push(`/play/${gameId}`);
       },
     });
   };
@@ -95,16 +83,14 @@ const QuizCreation = ({ topic: topicParam }: Props) => {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Quiz Lobby</CardTitle>
-          <CardDescription>
-            This is the quiz lobby. You can enter a token quiz here.
-          </CardDescription>
+          <CardDescription>Enter a token</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <FormField
                 control={form.control}
-                name="topic"
+                name="token"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Token</FormLabel>
@@ -112,8 +98,13 @@ const QuizCreation = ({ topic: topicParam }: Props) => {
                       <Input placeholder="Enter a token" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Enter a token to do a quiz. If you want to play a quiz,
-                      ask your teacher for a token.
+                      <span className="flex items-center">
+                        <BookOpen className="mr-2" />
+                        <span className="font-semibold">
+                          Token is a unique identifier for a quiz. Enter quiz
+                          token to join a quiz.
+                        </span>
+                      </span>
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -130,4 +121,4 @@ const QuizCreation = ({ topic: topicParam }: Props) => {
   );
 };
 
-export default QuizCreation;
+export default QuizLobby;
